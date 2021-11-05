@@ -1,19 +1,18 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "$id": "http://our.company.com/companySearch.schema.json",
+  "$id": "http://example.com/example.json",
   "type": "object",
   "properties": {
-    "name": {
+    "title": {
       "type": "string",
       "minLength": 1
     },
-    "minEmployees": {
+    "minSalary": {
       "type": "integer",
       "minimum": 0
     },
-    "maxEmployees": {
-      "type": "integer",
-      "minimum": 0
+    "hasEquity": {
+      "type": "boolean"
     }
   },
   "additionalProperties": false,
