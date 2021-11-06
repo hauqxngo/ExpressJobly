@@ -114,39 +114,6 @@ describe("GET /companies", function () {
       .set("authorization", `Bearer ${u1Token}`);
     expect(resp.statusCode).toEqual(500);
   });
-});
-
-/************************************** GET /companies */
-
-describe("GET /commpanies", () => {
-  test("ok for anon", async () => {
-    const resp = await request(app).get("/companies");
-    expect(resp.body).toEqual({
-      companies: [
-        {
-          handle: "c1",
-          name: "C1",
-          description: "Desc1",
-          numEmployees: 1,
-          logoUrl: "http://c1.img",
-        },
-        {
-          handle: "c2",
-          name: "C2",
-          description: "Desc2",
-          numEmployees: 2,
-          logoUrl: "http://c2.img",
-        },
-        {
-          handle: "c3",
-          name: "C3",
-          description: "Desc3",
-          numEmployees: 3,
-          logoUrl: "http://c3.img",
-        },
-      ],
-    });
-  });
 
   test("works: filtering", async () => {
     const resp = await request(app)
@@ -185,7 +152,7 @@ describe("GET /commpanies", () => {
   });
 
   test("bad request if invalid filter input", async () => {
-    const resp = await request(app).get("/companies").query({ invalid: "idk" });
+    const resp = await request(app).get(`/companies`).query({ invalid: "idk" });
     expect(resp.statusCode).toEqual(400);
   });
 });
@@ -202,6 +169,26 @@ describe("GET /companies/:handle", function () {
         description: "Desc1",
         numEmployees: 1,
         logoUrl: "http://c1.img",
+        jobs: [
+          {
+            id: expect.any(Number),
+            title: "J1",
+            salary: 100,
+            equity: "0.1",
+          },
+          {
+            id: expect.any(Number),
+            title: "J2",
+            salary: 200,
+            equity: "0.2",
+          },
+          {
+            id: expect.any(Number),
+            title: "J3",
+            salary: 300,
+            equity: null,
+          },
+        ],
       },
     });
   });
@@ -215,6 +202,7 @@ describe("GET /companies/:handle", function () {
         description: "Desc2",
         numEmployees: 2,
         logoUrl: "http://c2.img",
+        jobs: [],
       },
     });
   });

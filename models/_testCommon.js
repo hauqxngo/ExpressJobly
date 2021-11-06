@@ -17,14 +17,6 @@ async function commonBeforeAll() {
            ('c2', 'C2', 2, 'Desc2', 'http://c2.img'),
            ('c3', 'C3', 3, 'Desc3', 'http://c3.img')`);
 
-  const jobRes = await db.query(`
-    INSERT INTO jobs (title, salary, equity, company_handle)
-    VALUES ('J1', 100, '0.1', 'c1'),
-           ('J2', 200, '0.2', 'c1'),
-           ('J3', 300, '0.3', 'c1')
-    RETURNING id`);
-  testJobIds.splice(0, 0, ...jobRes.rows.map((r) => r.id));
-
   await db.query(
     `
         INSERT INTO users(username,
@@ -40,6 +32,14 @@ async function commonBeforeAll() {
       await bcrypt.hash("password2", BCRYPT_WORK_FACTOR),
     ]
   );
+
+  const jobRes = await db.query(`
+    INSERT INTO jobs (title, salary, equity, company_handle)
+    VALUES ('J1', 100, '0.1', 'c1'),
+           ('J2', 200, '0.2', 'c1'),
+           ('J3', 300, '0', 'c1')
+    RETURNING id`);
+  testJobIds.splice(0, 0, ...jobRes.rows.map((r) => r.id));
 
   await db.query(
     `

@@ -5,11 +5,7 @@
 const jsonschema = require("jsonschema");
 
 const express = require("express");
-const {
-  ensureLoggedIn,
-  ensureAdmin,
-  ensureCorrectUserOrAdmin,
-} = require("../middleware/auth");
+const { ensureAdmin, ensureCorrectUserOrAdmin } = require("../middleware/auth");
 const { BadRequestError } = require("../expressError");
 const User = require("../models/user");
 const { createToken } = require("../helpers/tokens");
@@ -64,7 +60,7 @@ router.get("/", ensureAdmin, async function (req, res, next) {
 
 /** GET /[username] => { user }
  *
- * Returns { username, firstName, lastName, isAdmin }
+ * Returns { username, firstName, lastName, isAdmin, jobs }
  *
  * Authorization required: correct user or admin
  **/
@@ -125,6 +121,25 @@ router.delete(
       return res.json({ deleted: req.params.username });
     } catch (err) {
       return next(err);
+    }
+  }
+);
+
+// POST /[username]/jobs/[id]
+// Returns { applied: jobId }
+// Authorization required: correct user or admin
+
+router.post(
+  "/:username/jobs/:id",
+  ensureCorrectUserOrAdmin,
+  async function (req, res, next) {
+    try {
+      const { username } = req.params;
+      const jobId = +req.params.id;
+      await User.applyToJob(username, jobId);
+      return res.json({ applied: jobId });
+    } catch (e) {
+      return next(e);
     }
   }
 );

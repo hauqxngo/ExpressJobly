@@ -6,7 +6,7 @@ const jsonschema = require("jsonschema");
 const express = require("express");
 
 const { BadRequestError } = require("../expressError");
-const { ensureLoggedIn, ensureAdmin } = require("../middleware/auth");
+const { ensureAdmin } = require("../middleware/auth");
 const Job = require("../models/job");
 
 const jobNewSchema = require("../schemas/jobNew.json");
@@ -40,12 +40,12 @@ router.post("/", ensureAdmin, async function (req, res, next) {
 });
 
 /** GET /  =>
- *   { companies: [ { handle, name, description, numEmployees, logoUrl }, ...] }
+ *   { jobs: [ { id, title, salary, equity, companyHandle }, ...] }
  *
  * Can filter on provided search filters:
- * - minEmployees
- * - maxEmployees
- * - nameLike (will find case-insensitive, partial matches)
+ * - title (will find case-insensitive, partial matches)
+ * - minSalary
+ * - hasEquity (true returns only jobs with equity > 0, other values ignored)
  *
  * Authorization required: none
  */
@@ -53,75 +53,75 @@ router.post("/", ensureAdmin, async function (req, res, next) {
 router.get("/", async function (req, res, next) {
   const q = req.query;
   // + will turn string into int
-  if (q.minEmployees !== undefined) q.minEmployees = +q.minEmployees;
-  if (q.maxEmployees !== undefined) q.maxEmployees = +q.maxEmployees;
+  if (q.minSalary !== undefined) q.minSalary = +q.minSalary;
+  q.hasEquity = q.hasEquity === "true";
 
   try {
-    const validator = jsonschema.validate(q, companySearchSchema);
+    const validator = jsonschema.validate(q, jobSearchSchema);
     if (!validator.valid) {
       const errs = validator.errors.map((e) => e.stack);
       throw new BadRequestError(errs);
     }
 
-    const companies = await Company.findAll(q);
-    return res.json({ companies });
+    const jobs = await Job.findAll(q);
+    return res.json({ jobs });
   } catch (err) {
     return next(err);
   }
 });
 
-/** GET /[handle]  =>  { company }
+/** GET /[id]  =>  { job }
  *
- *  Company is { handle, name, description, numEmployees, logoUrl, jobs }
- *   where jobs is [{ id, title, salary, equity }, ...]
+ *  Job is { id, title, salary, equity, company }
+ *   where comapny is [{ handle, name, description, numEmployees, logoUrl }, ...]
  *
  * Authorization required: none
  */
 
-router.get("/:handle", async function (req, res, next) {
+router.get("/:id", async function (req, res, next) {
   try {
-    const company = await Company.get(req.params.handle);
-    return res.json({ company });
+    const job = await Job.get(req.params.id);
+    return res.json({ job });
   } catch (err) {
     return next(err);
   }
 });
 
-/** PATCH /[handle] { fld1, fld2, ... } => { company }
+/** PATCH /[id] { fld1, fld2, ... } => { job }
  *
- * Patches company data.
+ * Patches job data.
  *
- * fields can be: { name, description, numEmployees, logo_url }
+ * fields can be: { id, title, salary, equity, company_handle }
  *
- * Returns { handle, name, description, numEmployees, logo_url }
+ * Returns { id, title, salary, equity, company_handle }
  *
- * Authorization required: login
+ * Authorization required: admin
  */
 
-router.patch("/:handle", ensureAdmin, async function (req, res, next) {
+router.patch("/:id", ensureAdmin, async function (req, res, next) {
   try {
-    const validator = jsonschema.validate(req.body, companyUpdateSchema);
+    const validator = jsonschema.validate(req.body, jobUpdateSchema);
     if (!validator.valid) {
       const errs = validator.errors.map((e) => e.stack);
       throw new BadRequestError(errs);
     }
 
-    const company = await Company.update(req.params.handle, req.body);
-    return res.json({ company });
+    const job = await Job.update(req.params.id, req.body);
+    return res.json({ job });
   } catch (err) {
     return next(err);
   }
 });
 
-/** DELETE /[handle]  =>  { deleted: handle }
+/** DELETE /[id]  =>  { deleted: id }
  *
  * Authorization: login
  */
 
-router.delete("/:handle", ensureAdmin, async function (req, res, next) {
+router.delete("/:id", ensureAdmin, async function (req, res, next) {
   try {
-    await Company.remove(req.params.handle);
-    return res.json({ deleted: req.params.handle });
+    await Job.remove(req.params.id);
+    return res.json({ deleted: +req.params.id });
   } catch (err) {
     return next(err);
   }

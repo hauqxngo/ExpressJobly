@@ -57,6 +57,7 @@ describe("findAll", function () {
         salary: 100,
         equity: "0.1",
         companyHandle: "c1",
+        companyName: "C1",
       },
       {
         id: testJobIds[1],
@@ -64,13 +65,15 @@ describe("findAll", function () {
         salary: 200,
         equity: "0.2",
         companyHandle: "c1",
+        companyName: "C1",
       },
       {
         id: testJobIds[2],
         title: "J3",
         salary: 300,
-        equity: "0.3",
+        equity: "0",
         companyHandle: "c1",
+        companyName: "C1",
       },
     ]);
   });
